@@ -52,7 +52,7 @@ func binarySearchGoMod(files []os.DirEntry) bool {
 			j = mid
 		}
 		if file.Name() < goModName {
-			i = mid
+			i = mid + 1
 		}
 	}
 	return false
