@@ -20,7 +20,7 @@ func TestGetPath(t *testing.T) {
 	}
 	println(res)
 	_, err = GetPath(1)
-	if !errors.Is(err, FailedToFind) {
+	if !errors.Is(err, ErrFailedToFind) {
 		t.Fatal(err)
 	}
 }

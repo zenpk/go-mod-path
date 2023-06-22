@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	FailedToFind = errors.New("failed to find the path of go.mod")
+	ErrFailedToFind = errors.New("failed to find the path of go.mod")
 )
 
 // GetNearestPath returns the nearest path that contains a `go.mod`
@@ -39,7 +39,7 @@ func GetPath(level int) (string, error) {
 			return "", err
 		}
 	}
-	return "", FailedToFind
+	return "", ErrFailedToFind
 }
 
 // GetFolderPath allows user to find the go-mod-path by the folder name
@@ -64,7 +64,7 @@ func GetFolderPath(name string) (string, error) {
 			return "", err
 		}
 	}
-	return "", FailedToFind
+	return "", ErrFailedToFind
 }
 
 func getDir() (string, error) {
@@ -106,7 +106,7 @@ func binarySearchGoMod(dir string) (bool, error) {
 // truncateLastPath equals cd ../
 func truncateLastPath(dir string) (string, error) {
 	if len(dir) == 1 { // dir == "/"
-		return "", FailedToFind
+		return "", ErrFailedToFind
 	}
 	// remove the last "/"
 	dir = dir[:len(dir)-1]
