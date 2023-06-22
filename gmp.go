@@ -44,13 +44,13 @@ func GetPath(level int) (string, error) {
 
 // GetFolderPath allows user to find the go-mod-path by the folder name
 func GetFolderPath(name string) (string, error) {
-	nameWithSuffix := name + "/"
+	name += "/"
 	dir, err := getDir()
 	if err != nil {
 		return "", err
 	}
 	for strings.Contains(dir, "/") {
-		if strings.HasSuffix(dir, nameWithSuffix) {
+		if strings.HasSuffix(dir, name) {
 			find, err := binarySearchGoMod(dir)
 			if err != nil {
 				return "", err
@@ -73,7 +73,7 @@ func getDir() (string, error) {
 		return "", err
 	}
 	// Windows
-	strings.ReplaceAll(dir, "\\", "/")
+	dir = strings.ReplaceAll(dir, "\\", "/")
 	dir += "/"
 	return dir, nil
 }
@@ -87,7 +87,7 @@ func binarySearchGoMod(dir string) (bool, error) {
 		return false, err
 	}
 	goModName := "go.mod"
-	for i, j := 0, len(files)-1; i <= j; {
+	for i, j := 0, len(files); i < j; {
 		mid := i + (j-i)/2
 		file := files[mid]
 		if file.Name() == goModName {
@@ -105,7 +105,7 @@ func binarySearchGoMod(dir string) (bool, error) {
 
 // truncateLastPath equals cd ../
 func truncateLastPath(dir string) (string, error) {
-	if dir == "/" {
+	if len(dir) == 1 { // dir == "/"
 		return "", FailedToFind
 	}
 	// remove the last "/"
