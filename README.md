@@ -1,4 +1,5 @@
 # go-mod-path
+
 A tiny module to easily get the path of `go.mod`
 
 No more relative path, absolute path, working directory, runtime directory... Just give me the path of `go.mod` !
@@ -14,23 +15,26 @@ go get github.com/zenpk/go-mod-path
 Suppose your file tree looks like this
 
 ```text
-root_dir/
+root/
 ├── go.mod
-└── some_folder/
-    └── parent/
+└── folder/
+    └── package/
         └── go.mod/
-            └── your_package/
+            └── yours/
                 ├── code.go <--- use gmp in this file
+                └── go.mod
+            └── package/
                 └── go.mod
 ```
 
-Then the two functions will work like this
+Then gmp (go-mod-path) will work like this
 
 ```go
 // same as gmp.GetPath(0)
-gmp.GetNearestPath() // root_dir/some_folder/parent/your_package/
+path, err := gmp.GetNearestPath() // root/folder/package/yours/
 
-gmp.GetPath(1) // root_dir/some_folder/parent/
-gmp.GetPath(2) // root_dir/
+path, err := gmp.GetPath(1) // root/folder/package/
+path, err := gmp.GetPath(2) // root/
+
+path, err := gmp.GetFolderPath("package") // root/folder/package
 ```
-
