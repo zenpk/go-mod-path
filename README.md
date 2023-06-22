@@ -19,7 +19,7 @@ root/
 ├── go.mod
 └── folder/
     └── package/
-        └── go.mod/
+        └── go.mod
             └── yours/
                 ├── code.go <--- use gmp in this file
                 └── go.mod
