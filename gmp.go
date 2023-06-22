@@ -3,6 +3,7 @@ package gmp
 import (
 	"errors"
 	"os"
+	"strings"
 )
 
 var (
@@ -14,39 +15,83 @@ func GetNearestPath() (string, error) {
 	return GetPath(0)
 }
 
-// GetPath let user specify the level of the `go.mod`
+// GetPath returns a path that contains a `go.mod`, allowing user to specify the level of the `go.mod`
 // e.g. level=1 means get the parent module's `go.mod` path
 func GetPath(level int) (string, error) {
 	levelCnt := -1
-	dir, err := os.Getwd()
+	dir, err := getDir()
 	if err != nil {
 		return "", err
 	}
-	dir += "/"
-	for true {
-		files, err := os.ReadDir(dir)
+	for strings.Contains(dir, "/") {
+		find, err := binarySearchGoMod(dir)
 		if err != nil {
 			return "", err
 		}
-		if binarySearchGoMod(files) {
+		if find {
 			levelCnt++
 			if levelCnt == level {
 				return dir, nil
 			}
 		}
-		dir += "../"
+		dir, err = truncateLastPath(dir)
+		if err != nil {
+			return "", err
+		}
 	}
 	return "", FailedToFind
 }
 
-// binarySearchGoMod files is sorted by filename, so it is possible to use binary search
-func binarySearchGoMod(files []os.DirEntry) bool {
+// GetFolderPath allows user to find the go-mod-path by the folder name
+func GetFolderPath(name string) (string, error) {
+	nameWithSuffix := name + "/"
+	dir, err := getDir()
+	if err != nil {
+		return "", err
+	}
+	for strings.Contains(dir, "/") {
+		if strings.HasSuffix(dir, nameWithSuffix) {
+			find, err := binarySearchGoMod(dir)
+			if err != nil {
+				return "", err
+			}
+			if find {
+				return dir, nil
+			}
+		}
+		dir, err = truncateLastPath(dir)
+		if err != nil {
+			return "", err
+		}
+	}
+	return "", FailedToFind
+}
+
+func getDir() (string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	// Windows
+	strings.ReplaceAll(dir, "\\", "/")
+	dir += "/"
+	return dir, nil
+}
+
+// binarySearchGoMod binary search for `go.mod` in current directory
+func binarySearchGoMod(dir string) (bool, error) {
+	// the files returned by os.ReadDir is sorted by the filename,
+	// so it is possible to use binary search
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return false, err
+	}
 	goModName := "go.mod"
 	for i, j := 0, len(files)-1; i <= j; {
 		mid := i + (j-i)/2
 		file := files[mid]
 		if file.Name() == goModName {
-			return true
+			return true, nil
 		}
 		if file.Name() > goModName {
 			j = mid
@@ -55,5 +100,16 @@ func binarySearchGoMod(files []os.DirEntry) bool {
 			i = mid + 1
 		}
 	}
-	return false
+	return false, nil
+}
+
+// truncateLastPath equals cd ../
+func truncateLastPath(dir string) (string, error) {
+	if dir == "/" {
+		return "", FailedToFind
+	}
+	// remove the last "/"
+	dir = dir[:len(dir)-1]
+	lastIndex := strings.LastIndex(dir, "/")
+	return dir[:lastIndex], nil
 }
